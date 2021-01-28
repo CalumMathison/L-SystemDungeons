@@ -7,5 +7,5 @@ public class Node
     //Position of Node
     public Vector3 positon;
     //Width and height of node
-    int width, height;
+    public int width, height;
 }
