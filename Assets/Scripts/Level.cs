@@ -6,15 +6,15 @@ public class Level : MonoBehaviour
 {
     public int width, height;
     private GameObject[,] tiles;
-    public Sprite sprite, blank, wall;
+    public Sprite sprite, blank, wall, sFloor, cFloor, lFloor, pFloor, bFloor;
     public GameObject tilePrefab;
     Pathfinder pathfinder;
     GameObject start, end;
 
     public void Awake()
     {
-        width = 100;
-        height = 100;
+        width = 140;
+        height = 140;
         tiles = new GameObject[width, height];
         for (int x = 0; x < width; x++)
         {
@@ -35,6 +35,7 @@ public class Level : MonoBehaviour
             {
                 tiles[x, y].GetComponent<Tile>().sprite = blank;
                 tiles[x, y].GetComponent<Tile>().Setup();
+                tiles[x, y].GetComponent<Tile>().isFloor = false;
             }
         }
 
@@ -62,8 +63,26 @@ public class Level : MonoBehaviour
                             {
                                 for (int h = 0; h < n.height; h++)
                                 {
-                                    tiles[x + w, y + h].GetComponent<Tile>().sprite = sprite;
+                                    switch (n.type)
+                                    {
+                                        case 'S':
+                                            tiles[x + w, y + h].GetComponent<Tile>().sprite = sFloor;
+                                            break;
+                                        case 'C':
+                                            tiles[x + w, y + h].GetComponent<Tile>().sprite = cFloor;
+                                            break;
+                                        case 'P':
+                                            tiles[x + w, y + h].GetComponent<Tile>().sprite = pFloor;
+                                            break;
+                                        case 'L':
+                                            tiles[x + w, y + h].GetComponent<Tile>().sprite = lFloor;
+                                            break;
+                                        case 'B':
+                                            tiles[x + w, y + h].GetComponent<Tile>().sprite = bFloor;
+                                            break;
+                                    }
                                     tiles[x + w, y + h].GetComponent<Tile>().Setup();
+                                    tiles[x + w, y + h].GetComponent<Tile>().isFloor = true;
                                 }
                             }
                         }
@@ -71,16 +90,52 @@ public class Level : MonoBehaviour
                         {
                             for (int w = 0; w < n.width; w++)
                             {
-                                tiles[x + w, y].GetComponent<Tile>().sprite = sprite;
+                                switch (n.type)
+                                {
+                                    case 'S':
+                                        tiles[x + w, y].GetComponent<Tile>().sprite = sFloor;
+                                        break;
+                                    case 'C':
+                                        tiles[x + w, y].GetComponent<Tile>().sprite = cFloor;
+                                        break;
+                                    case 'P':
+                                        tiles[x + w, y].GetComponent<Tile>().sprite = pFloor;
+                                        break;
+                                    case 'L':
+                                        tiles[x + w, y].GetComponent<Tile>().sprite = lFloor;
+                                        break;
+                                    case 'B':
+                                        tiles[x + w, y].GetComponent<Tile>().sprite = bFloor;
+                                        break;
+                                }
                                 tiles[x + w, y].GetComponent<Tile>().Setup();
+                                tiles[x + w, y].GetComponent<Tile>().isFloor = true;
                             }
                         }
                         else if (n.height > 1)
                         {
                             for (int h = 0; h < n.height; h++)
                             {
-                                tiles[x, y + h].GetComponent<Tile>().sprite = sprite;
+                                switch (n.type)
+                                {
+                                    case 'S':
+                                        tiles[x, y + h].GetComponent<Tile>().sprite = sFloor;
+                                        break;
+                                    case 'C':
+                                        tiles[x, y + h].GetComponent<Tile>().sprite = cFloor;
+                                        break;
+                                    case 'P':
+                                        tiles[x , y + h].GetComponent<Tile>().sprite = pFloor;
+                                        break;
+                                    case 'L':
+                                        tiles[x , y + h].GetComponent<Tile>().sprite = lFloor;
+                                        break;
+                                    case 'B':
+                                        tiles[x, y + h].GetComponent<Tile>().sprite = bFloor;
+                                        break;
+                                }
                                 tiles[x, y + h].GetComponent<Tile>().Setup();
+                                tiles[x, y + h].GetComponent<Tile>().isFloor = true;
                             }
                         }
 
@@ -91,13 +146,13 @@ public class Level : MonoBehaviour
         }
 
         CalculateWalls();
-        List<GameObject> paths = pathfinder.FindPath(tiles, start, end);
-        Debug.Log(paths.Count);
-        foreach (GameObject t in paths)
-        {
-            t.GetComponent<Tile>().sprite = sprite;
-            t.GetComponent<Tile>().Setup();
-        }
+        //List<GameObject> paths = pathfinder.FindPath(tiles, start, end);
+        //Debug.Log(paths.Count);
+        //foreach (GameObject t in paths)
+        //{
+        //    t.GetComponent<Tile>().sprite = sprite;
+        //    t.GetComponent<Tile>().Setup();
+        //}
     }
 
     public void CalculateWalls()
@@ -106,11 +161,11 @@ public class Level : MonoBehaviour
         {
             for (int y = 1; y < height - 1; y++)
             {
-                if (tiles[x,y].GetComponent<Tile>().sprite != sprite && 
-                    (tiles[x - 1, y].GetComponent<Tile>().sprite == sprite || tiles[x, y - 1].GetComponent<Tile>().sprite == sprite ||
-                    tiles[x - 1, y - 1].GetComponent<Tile>().sprite == sprite || tiles[x + 1, y + 1].GetComponent<Tile>().sprite == sprite ||
-                    tiles[x + 1, y].GetComponent<Tile>().sprite == sprite || tiles[x, y + 1].GetComponent<Tile>().sprite == sprite ||
-                    tiles[x + 1, y - 1].GetComponent<Tile>().sprite == sprite || tiles[x - 1, y + 1].GetComponent<Tile>().sprite == sprite)
+                if (tiles[x,y].GetComponent<Tile>().sprite == blank && 
+                    (tiles[x - 1, y].GetComponent<Tile>().isFloor == true || tiles[x, y - 1].GetComponent<Tile>().isFloor == true ||
+                    tiles[x - 1, y - 1].GetComponent<Tile>().isFloor == true || tiles[x + 1, y + 1].GetComponent<Tile>().isFloor == true ||
+                    tiles[x + 1, y].GetComponent<Tile>().isFloor == true || tiles[x, y + 1].GetComponent<Tile>().isFloor == true ||
+                    tiles[x + 1, y - 1].GetComponent<Tile>().isFloor == true || tiles[x - 1, y + 1].GetComponent<Tile>().isFloor == true)
                     )
                 {
                     tiles[x, y].GetComponent<Tile>().sprite = wall;

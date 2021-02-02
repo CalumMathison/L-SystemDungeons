@@ -5,8 +5,8 @@ using UnityEngine;
 public class Rule
 {
     //List of usable characters in randomisation. Insures that only on start and end room occurs.
-    public string[] nonTerminalChars = { "C", "P", "L", "+", "-", "[" };
-    public string[] nonBranchingChars = { "C", "P", "L", "+", "-" };
+    public string[] nonTerminalChars = { "L", "P", "C", "+", "-", "[" };
+    public string[] nonBranchingChars = { "L", "P", "C", "+", "-" };
     //Character representation of rule
     public char character;
     //Replacement character of rule

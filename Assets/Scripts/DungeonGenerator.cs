@@ -63,7 +63,7 @@ public class DungeonGenerator : MonoBehaviour
 
         rules.Add('S', S);
         rules.Add('B', B);
-        rules.Add('C', L);
+        rules.Add('C', C);
         rules.Add('L', L);
         rules.Add('P', P);
         rules.Add('+', plus);
@@ -184,6 +184,7 @@ public class DungeonGenerator : MonoBehaviour
                         newNode.positon = new Vector3(tPosition.x + 0.5f, tPosition.y + 0.5f, 0);
                         newNode.width = (int)Random.Range(MIN_DIM, MAX_DIM);
                         newNode.height = (int)Random.Range(MIN_DIM, MAX_DIM);
+                        newNode.type = c;
                         nodes.Add(newNode);
                         tPosition += forward * 10;
                         positions[index] = tPosition;

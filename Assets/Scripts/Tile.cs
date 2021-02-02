@@ -7,9 +7,11 @@ public class Tile : MonoBehaviour
     public Sprite sprite;
     public Vector2 position;
     public int score = 1;
+    public bool isFloor = false;
 
     public void Setup()
     {
-        GetComponent<SpriteRenderer>().sprite = sprite;       
+        GetComponent<SpriteRenderer>().sprite = sprite;    
+        
     }
 }

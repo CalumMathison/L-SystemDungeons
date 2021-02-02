@@ -251,6 +251,12 @@ MonoBehaviour:
   height: 100
   sprite: {fileID: 21300000, guid: fabc4228fe496f54c8c59b63f5335bea, type: 3}
   blank: {fileID: 21300000, guid: edaa29f66219cdb43a9b907492875210, type: 3}
+  wall: {fileID: 21300000, guid: c8550e900b4ca6f438ecba482f45768f, type: 3}
+  sFloor: {fileID: 21300000, guid: 331e8f72c88070d4886a20d1aba81fbd, type: 3}
+  cFloor: {fileID: 21300000, guid: 0768a848759303144865d8660742b91d, type: 3}
+  lFloor: {fileID: 21300000, guid: e262501641f3ec04aa89335624a798b5, type: 3}
+  pFloor: {fileID: 21300000, guid: 2823cc8d4cd94e5469bb988386fd5491, type: 3}
+  bFloor: {fileID: 21300000, guid: 6837467bbb30d5b48ae8893d0dac455d, type: 3}
   tilePrefab: {fileID: 1546168596732100519, guid: 09cf5a4e945e8a14aa27caaad34f49b3,
     type: 3}
 --- !u!1 &1520601854
