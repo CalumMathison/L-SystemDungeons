@@ -30,25 +30,31 @@ public class DungeonGenerator : MonoBehaviour
 
     private void Awake()
     {
+        //Create initial state
         State newState = new State();
         newState.Axiom = StartingAxiom;
         newState.position = new Vector3(0, 0, 0);
         newState.forward = Vector3.up;
         newState.angle = 0;
         states.Push(newState);
+        //Set current state
         currentState = new State();
         currentState = states.Peek();
         Debug.Log("State Setup Complete");
 
+        // Set rules for algorithm
         SetupRules();
         currentAxiom = StartingAxiom;
+        // Pass over algorithm
         currentAxiom = GenerateAxiom(currentState.Axiom);
+        // Render Algorithm
         CalculatePositions();
         Debug.Log("L-system setup complete");
     }
 
     void SetupRules()
     {
+        // Create rules
         Rule S = new Rule('S');
         Rule B = new Rule('B');
         Rule C = new Rule('C');
@@ -61,6 +67,7 @@ public class DungeonGenerator : MonoBehaviour
         Rule sBranch = new Rule('[');
         Rule eBranch = new Rule(']');
 
+        //Add rules to dictionary
         rules.Add('S', S);
         rules.Add('B', B);
         rules.Add('C', C);
@@ -75,8 +82,10 @@ public class DungeonGenerator : MonoBehaviour
 
     string GenerateAxiom(string current)
     {
+        // Start with current axiom
         string result = current;
 
+        // Iterate over axiom and make new axiom with rules
         for (int i = 0; i < Iterations; i++)
         {
             string s = "";
@@ -101,6 +110,7 @@ public class DungeonGenerator : MonoBehaviour
             result = s;
         }
 
+        // Check branching rules and ensure axiom branches match up
         int a = 0, b = 0;
         for (int i = 0; i < result.Length; i++)
         {
@@ -131,6 +141,7 @@ public class DungeonGenerator : MonoBehaviour
             }
         }
 
+        // Ensure axiom contains a starting room
         if (!result.Contains("S"))
         {
             result = 'S' + result;
@@ -148,13 +159,16 @@ public class DungeonGenerator : MonoBehaviour
         int index = 1;
         Vector3 pos = Vector3.zero;
 
+        // Iterate over current axiom
         foreach (char c in currentAxiom)
         {
+            // If axiom character is a rule
             if (rules.ContainsKey(c))
             {
                 Rule rule = rules[c];
                 if (rule.character == c)
                 {
+                    // Create new state for open branch
                     if (c == '[')
                     {
                         State newState = new State();
@@ -165,7 +179,7 @@ public class DungeonGenerator : MonoBehaviour
                         positions[index] = tPosition;
                         index++;
                     }
-                    else if (c == ']')
+                    else if (c == ']') // Close branch and return to previous state
                     {
                         currentState = states.Pop();
                         tPosition = currentState.position;
@@ -173,11 +187,12 @@ public class DungeonGenerator : MonoBehaviour
                         positions[index] = tPosition;
                         index++;
                     }
-                    else if (rule.angle != 0)
+                    else if (rule.angle != 0) // Rotate direction for next room
                     {
                         forward = Quaternion.AngleAxis(rule.angle, Vector3.forward) * forward;
                     }
 
+                    // Check if rule is drawable and create node to represent it
                     if (rules[c].IsDrawable)
                     {
                         Node newNode = new Node();
@@ -193,6 +208,8 @@ public class DungeonGenerator : MonoBehaviour
                 }
             }
         }
+
+        CheckNodeOverlap();
 
         Debug.Log("Node Generation Complete. Node Count: " + nodes.Count);
 
@@ -230,5 +247,28 @@ public class DungeonGenerator : MonoBehaviour
     {
         nodes.Clear();
         states.Clear();
+    }
+    
+
+    private void CheckNodeOverlap()
+    {
+        foreach (Node n in nodes)
+        {
+            foreach (Node j in nodes)
+            {
+                if (n != j)
+                {
+                    if (Vector2.Distance(n.positon, j.positon) < n.width + j.width + 1 
+                        || Vector2.Distance(n.positon, j.positon) < n.height + j.height + 1)
+                    {
+                        n.positon.x--;
+                        n.positon.y--;
+                        j.positon.x++;
+                        j.positon.y++;
+                        CheckNodeOverlap();
+                    }
+                }
+            }
+        }
     }
 }

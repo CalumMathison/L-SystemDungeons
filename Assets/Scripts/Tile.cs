@@ -9,6 +9,18 @@ public class Tile : MonoBehaviour
     public int score = 1;
     public bool isFloor = false;
 
+    public float X
+    {
+        get { return position.x; }
+        set { position.x = value; }
+    }
+
+    public float Y
+    {
+        get { return position.y; }
+        set { position.y = value; }
+    }
+
     public void Setup()
     {
         GetComponent<SpriteRenderer>().sprite = sprite;    

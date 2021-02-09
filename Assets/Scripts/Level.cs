@@ -10,12 +10,14 @@ public class Level : MonoBehaviour
     public GameObject tilePrefab;
     Pathfinder pathfinder;
     GameObject start, end;
+    bool[,] graph;
 
     public void Awake()
     {
         width = 140;
         height = 140;
         tiles = new GameObject[width, height];
+        graph = new bool[width, height];
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
@@ -23,7 +25,7 @@ public class Level : MonoBehaviour
                 tiles[x, y] = Instantiate(tilePrefab, new Vector3(x - (width / 2) - 0.5f, y - (height / 2) - 0.5f, 0), Quaternion.identity) as GameObject;
             }
         }
-
+        
         pathfinder = new Pathfinder();
     }
 
@@ -36,6 +38,7 @@ public class Level : MonoBehaviour
                 tiles[x, y].GetComponent<Tile>().sprite = blank;
                 tiles[x, y].GetComponent<Tile>().Setup();
                 tiles[x, y].GetComponent<Tile>().isFloor = false;
+                graph[x, y] = true;
             }
         }
 
@@ -138,21 +141,26 @@ public class Level : MonoBehaviour
                                 tiles[x, y + h].GetComponent<Tile>().isFloor = true;
                             }
                         }
-
                     }              
-                }
-                
+                }              
             }
         }
 
-        CalculateWalls();
-        //List<GameObject> paths = pathfinder.FindPath(tiles, start, end);
+        //List<Tile> paths = pathfinder.FindPath(graph, start.GetComponent<Tile>(), end.GetComponent<Tile>(), tiles);
         //Debug.Log(paths.Count);
-        //foreach (GameObject t in paths)
+        //foreach (Tile t in paths)
         //{
-        //    t.GetComponent<Tile>().sprite = sprite;
-        //    t.GetComponent<Tile>().Setup();
+        //    foreach (GameObject g in tiles)
+        //    {
+        //        if (g.GetComponent<Tile>() == t)
+        //        {
+        //            t.GetComponent<Tile>().sprite = sprite;
+        //            t.GetComponent<Tile>().Setup();
+        //        }
+        //    }
         //}
+
+        CalculateWalls();
     }
 
     public void CalculateWalls()
