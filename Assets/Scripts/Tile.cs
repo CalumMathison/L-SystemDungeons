@@ -8,6 +8,9 @@ public class Tile : MonoBehaviour
     public Vector2 position;
     public int score = 1;
     public bool isFloor = false;
+    public int xIndex, yIndex;
+    public float gScore = 1;
+    public Tile parent;
 
     public float X
     {
