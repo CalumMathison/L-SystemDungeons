@@ -23,8 +23,8 @@ public class DungeonGenerator : MonoBehaviour
     //Data for length of connections between nodes ||| Move to node class? |||
     public float CorridorLength;
     private Vector3 tPosition = new Vector3(0,0,0);
-    public const int MAX_DIM = 5;
-    public const int MIN_DIM = 2;
+    public const int MAX_DIM = 10;
+    public const int MIN_DIM = 3;
 
     public int MaxSize;
 
@@ -201,7 +201,7 @@ public class DungeonGenerator : MonoBehaviour
                         newNode.height = (int)Random.Range(MIN_DIM, MAX_DIM);
                         newNode.type = c;
                         nodes.Add(newNode);
-                        tPosition += forward * 10;
+                        tPosition += forward * 2;
                         positions[index] = tPosition;
                         index++;
                     }

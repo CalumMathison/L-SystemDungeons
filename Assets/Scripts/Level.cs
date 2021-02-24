@@ -9,11 +9,12 @@ public class Level : MonoBehaviour
     public int width, height;
     private GameObject[,] tiles;
     public Sprite sprite, blank, wall, sFloor, cFloor, lFloor, pFloor, bFloor;
-    public GameObject tilePrefab;
+    public GameObject tilePrefab, doorPrefab;
     Pathfinder pathfinder;
-    GameObject start, end;
+    public GameObject start, end;
     bool[,] graph;
     UnityEngine.Color color;
+    private GameObject[] doors;
 
     public void Awake()
     {
@@ -44,6 +45,7 @@ public class Level : MonoBehaviour
                 tiles[x, y].GetComponent<Tile>().xIndex = x;
                 tiles[x, y].GetComponent<Tile>().yIndex = y;
                 tiles[x, y].GetComponent<Tile>().position = tiles[x, y].transform.position;
+                tiles[x, y].GetComponent<Collider2D>().enabled = true;
                 graph[x, y] = true;
             }
         }
@@ -59,11 +61,32 @@ public class Level : MonoBehaviour
                 {
                     if (tiles[x, y].GetComponent<Collider2D>().bounds.Contains(nodes[i].positon))
                     {
-                        originPoints.Add(tiles[x, y].GetComponent<Tile>());
+                        originPoints.Add(tiles[x + (int)Random.Range(0, nodes[i].width), y + (int)Random.Range(0, nodes[i].height)].GetComponent<Tile>());
                     }
                 }
             }
         }
+
+        //int originCount = originPoints.Count;
+
+        //for (int i = 0; i < originPoints.Count - 1; i += 2)
+        //{
+        //    int x, y;
+        //    float rng = Random.Range(0, 10);
+        //    Debug.Log(rng);
+        //    if (rng >= 5)
+        //    {
+        //        x = originPoints[i].GetComponent<Tile>().xIndex;
+        //        y = originPoints[i + 1].GetComponent<Tile>().yIndex;
+        //        originPoints.Insert(i + 1, tiles[x, y].GetComponent<Tile>());
+        //    }
+        //    else
+        //    {
+        //        x = originPoints[i + 1].GetComponent<Tile>().xIndex;
+        //        y = originPoints[i].GetComponent<Tile>().yIndex;
+        //        originPoints.Insert(i + 1, tiles[x, y].GetComponent<Tile>());
+        //    }
+        //}
 
         for (int i = 0; i < originPoints.Count-1; i++)
         {
@@ -114,6 +137,7 @@ public class Level : MonoBehaviour
                                     }
                                     tiles[x + w, y + h].GetComponent<Tile>().Setup();
                                     tiles[x + w, y + h].GetComponent<Tile>().isFloor = true;
+                                    tiles[x + w, y + h].GetComponent<Collider2D>().enabled = false;
                                 }
                             }
                         }
@@ -141,6 +165,7 @@ public class Level : MonoBehaviour
                                 }
                                 tiles[x + w, y].GetComponent<Tile>().Setup();
                                 tiles[x + w, y].GetComponent<Tile>().isFloor = true;
+                                tiles[x + w, y].GetComponent<Collider2D>().enabled = false;
                             }
                         }
                         else if (n.height > 1)
@@ -167,6 +192,7 @@ public class Level : MonoBehaviour
                                 }
                                 tiles[x, y + h].GetComponent<Tile>().Setup();
                                 tiles[x, y + h].GetComponent<Tile>().isFloor = true;
+                                tiles[x, y + h].GetComponent<Collider2D>().enabled = false;
                             }
                         }
                     }              
@@ -180,6 +206,7 @@ public class Level : MonoBehaviour
        // MakePath(start.GetComponent<Tile>(), end.GetComponent<Tile>());
 
         CalculateWalls();
+        CalculateDoors();
     }
 
     public void CalculateWalls()
@@ -197,6 +224,41 @@ public class Level : MonoBehaviour
                 {
                     tiles[x, y].GetComponent<Tile>().sprite = wall;
                     tiles[x, y].GetComponent<Tile>().Setup();
+                }
+            }
+        }
+    }
+
+    public void CalculateDoors()
+    {
+        doors = GameObject.FindGameObjectsWithTag("Door");
+        if (doors.Length > 0)
+        {
+            for (int i = 0; i < doors.Length; i++)
+            {
+                GameObject.Destroy(doors[i]);
+            }
+        }
+        for (int x = 1; x < width - 1; x++)
+        {
+            for (int y = 1; y < height - 1; y++)
+            {
+                if (tiles[x, y].GetComponent<Tile>().sprite == sprite &&
+                    tiles[x + 1, y].GetComponent<Tile>().sprite == wall &&
+                    tiles[x - 1, y].GetComponent<Tile>().sprite == wall &&
+                    ((tiles[x, y + 1].GetComponent<Tile>().sprite != wall && tiles[x, y + 1].GetComponent<Tile>().sprite != sprite) ||
+                    (tiles[x, y - 1].GetComponent<Tile>().sprite != wall && tiles[x, y - 1].GetComponent<Tile>().sprite != sprite)))
+                {
+                    GameObject i = Instantiate(doorPrefab, tiles[x, y].transform.position, Quaternion.identity) as GameObject;
+                }
+
+                if (tiles[x, y].GetComponent<Tile>().sprite == sprite &&
+                    tiles[x, y + 1].GetComponent<Tile>().sprite == wall &&
+                    tiles[x, y - 1].GetComponent<Tile>().sprite == wall &&
+                    ((tiles[x - 1, y].GetComponent<Tile>().sprite != wall && tiles[x - 1, y].GetComponent<Tile>().sprite != sprite) ||
+                    (tiles[x + 1, y].GetComponent<Tile>().sprite != wall && tiles[x + 1, y].GetComponent<Tile>().sprite != sprite)))
+                {
+                    GameObject i = Instantiate(doorPrefab, tiles[x, y].transform.position, Quaternion.identity) as GameObject;
                 }
             }
         }
@@ -232,7 +294,11 @@ public class Level : MonoBehaviour
 
             foreach (Tile i in openList)
             {
-                nh = Vector2.Distance(i.position, tiles[end.xIndex, end.yIndex].GetComponent<Tile>().position);
+                //Euclidean DIstance
+                //nh = Vector2.Distance(i.position, tiles[end.xIndex, end.yIndex].GetComponent<Tile>().position);
+
+                //Manhatten Distance
+                nh = (i.position.x - tiles[end.xIndex, end.yIndex].GetComponent<Tile>().position.x) + (i.position.y - tiles[end.xIndex, end.yIndex].GetComponent<Tile>().position.y);
 
                 nf = i.gScore;
 
@@ -246,7 +312,6 @@ public class Level : MonoBehaviour
                 //openList.Remove(current);
 
                 h = 0;
-               // f = float.MaxValue;
 
             }
             if (current.xIndex == end.xIndex &&
@@ -273,12 +338,10 @@ public class Level : MonoBehaviour
 
                 foreach (Tile i in neighbours)
                 {
-                    if (i.gScore < current.gScore)// && (closedList.Contains(i) || openList.Contains(i)))
+                    if (i.gScore < current.gScore)
                     {
                         Debug.Log("Added tile " + current.xIndex + ", " + current.yIndex + " as parent of tile " + i.xIndex + ", " + i.yIndex);
                         tiles[i.xIndex, i.yIndex].GetComponent<Tile>().parent = tiles[current.xIndex, current.yIndex].GetComponent<Tile>();
-                       // i.parent = current;
-                        //current = i;
                         if (openList.Contains(i))
                         {
                             Debug.Log("Removed tile at index " + i.xIndex + ", " + i.yIndex + " from open list");
@@ -321,6 +384,7 @@ public class Level : MonoBehaviour
             tiles[p.X, p.Y].GetComponent<Tile>().sprite = sprite;
             tiles[p.X, p.Y].GetComponent<Tile>().isFloor = true;
             tiles[p.X, p.Y].GetComponent<Tile>().Setup();
+            tiles[p.X, p.Y].GetComponent<Collider2D>().enabled = false;
         }
     }
 
