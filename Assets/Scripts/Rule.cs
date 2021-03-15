@@ -6,29 +6,21 @@ public class Rule
 {
     //List of usable characters in randomisation. Insures that only on start and end room occurs.
     public string[] nonTerminalChars = { "L", "P", "C", "+", "-", "[" };
-    public string[] nonBranchingChars = { "L", "P", "C", "+", "-" };
+    public string[] nonBranchingChars = { "L", "P", "C" };
     //Character representation of rule
     public char character;
     //Replacement character of rule
     public string replacementCharacter;
     //Forward angle of rule (default = 0)
     public float angle = 0;
+    bool _isDrawable;
     public bool IsDrawable
     {
         get
         {
-            if (character == '[' ||
-                character == '+' ||
-                character == '-' ||
-                character == ']')
-            {
-                return false;
-            }
-            else
-            {
-                return true;
-            }
+            return _isDrawable;
         }
+        set { _isDrawable = value; }
     }
 
     public Rule(char c)

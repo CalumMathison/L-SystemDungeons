@@ -67,6 +67,43 @@ public class Level : MonoBehaviour
             }
         }
 
+        foreach (Node n in nodes)
+        {
+            Tile c = new Tile();
+            Tile p = new Tile();
+
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    if (tiles[x, y].GetComponent<Collider2D>().bounds.Contains(n.positon))
+                    {
+                        c = tiles[x + (int)Random.Range(0, n.width), y + (int)Random.Range(0, n.height)].GetComponent<Tile>();
+                    }
+                }
+            }
+
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    if (n.Parent != null)
+                    {
+                        if (tiles[x, y].GetComponent<Collider2D>().bounds.Contains(n.Parent.positon))
+                        {
+                            p = tiles[x + (int)Random.Range(0, n.Parent.width), y + (int)Random.Range(0, n.Parent.height)].GetComponent<Tile>();
+                        }
+                    }
+                }
+            }
+
+            if (c != null && p != null)
+            {
+                MakePath(c, p);
+            }
+
+        }        
+
         //int originCount = originPoints.Count;
 
         //for (int i = 0; i < originPoints.Count - 1; i += 2)
@@ -88,10 +125,10 @@ public class Level : MonoBehaviour
         //    }
         //}
 
-        for (int i = 0; i < originPoints.Count-1; i++)
-        {
-            MakePath(originPoints[i], originPoints[i+1]);
-        }
+        //for (int i = 0; i < originPoints.Count-1; i++)
+        //{
+        //    MakePath(originPoints[i], originPoints[i+1]);
+        //}
 
 
         for (int x = 0; x < width; x++)
@@ -206,7 +243,7 @@ public class Level : MonoBehaviour
        // MakePath(start.GetComponent<Tile>(), end.GetComponent<Tile>());
 
         CalculateWalls();
-        CalculateDoors();
+        //CalculateDoors();
     }
 
     public void CalculateWalls()
@@ -269,7 +306,9 @@ public class Level : MonoBehaviour
         List<Tile> openList = new List<Tile>();
         Debug.Log("Added tile of index " + start.xIndex + ", " + start.yIndex + "to open list");
         openList.Add(tiles[start.xIndex, start.yIndex].GetComponent<Tile>());
-        openList[0].gScore = Vector2.Distance(start.position, end.position);
+        openList[0].gScore = 1;
+        openList[0].hScore = 1 * (Mathf.Abs(openList[0].position.x - tiles[end.xIndex, end.yIndex].GetComponent<Tile>().position.x) + Mathf.Abs(openList[0].position.y - tiles[end.xIndex, end.yIndex].GetComponent<Tile>().position.y));
+        openList[0].fScore = openList[0].gScore + openList[0].hScore;
         List<Tile> closedList = new List<Tile>();
         List<Tile> neighbours = new List<Tile>();
         Tile current = openList[0];
@@ -278,10 +317,9 @@ public class Level : MonoBehaviour
         float g = 0, h = 0, f = 0, nh, nf;
         g = 0;
         h = 0;
-        f = Vector2.Distance(start.position, end.position);
-        float currG = 0;
+        //f = Vector2.Distance(start.position, end.position);
         float timer = 0;
-        f = Vector2.Distance(tiles[start.xIndex, start.yIndex].GetComponent<Tile>().position, tiles[end.xIndex, end.yIndex].GetComponent<Tile>().position);
+        //f = Vector2.Distance(tiles[start.xIndex, start.yIndex].GetComponent<Tile>().position, tiles[end.xIndex, end.yIndex].GetComponent<Tile>().position);
 
         while (!pathfound && !error)
         {
@@ -294,29 +332,31 @@ public class Level : MonoBehaviour
 
             foreach (Tile i in openList)
             {
-                //Euclidean DIstance
+                //Euclidean Distance
                 //nh = Vector2.Distance(i.position, tiles[end.xIndex, end.yIndex].GetComponent<Tile>().position);
 
                 //Manhatten Distance
-                nh = (i.position.x - tiles[end.xIndex, end.yIndex].GetComponent<Tile>().position.x) + (i.position.y - tiles[end.xIndex, end.yIndex].GetComponent<Tile>().position.y);
+                //nh = (i.position.x - tiles[end.xIndex, end.yIndex].GetComponent<Tile>().position.x) + (i.position.y - tiles[end.xIndex, end.yIndex].GetComponent<Tile>().position.y);
 
-                nf = i.gScore;
+                //nf = i.fScore;
+                //f = current.fScore;
 
-                if (nf < f)
+                if (i.fScore < current.fScore)
                 {
                     current = i;
-                    f = current.gScore;
                 }
 
                 //current = openList.First<Tile>();
                 //openList.Remove(current);
 
-                h = 0;
+                //h = 0;
+                // f = float.MaxValue;
 
             }
             if (current.xIndex == end.xIndex &&
                 current.yIndex == end.yIndex)
             {
+                end.parent = current.parent;
                 Debug.Log("Path found");
                 pathfound = true;
             }
@@ -338,7 +378,7 @@ public class Level : MonoBehaviour
 
                 foreach (Tile i in neighbours)
                 {
-                    if (i.gScore < current.gScore)
+                    if (i.fScore < current.fScore)
                     {
                         Debug.Log("Added tile " + current.xIndex + ", " + current.yIndex + " as parent of tile " + i.xIndex + ", " + i.yIndex);
                         tiles[i.xIndex, i.yIndex].GetComponent<Tile>().parent = tiles[current.xIndex, current.yIndex].GetComponent<Tile>();
@@ -356,10 +396,12 @@ public class Level : MonoBehaviour
                     
                     if (!closedList.Contains(i) && (!openList.Contains(i)))
                     {
-                        Debug.Log("Added tile at index " + i.xIndex + ", " + i.yIndex + " to open list");                     
-                        i.gScore = Vector2.Distance(i.position, end.position);
+                        Debug.Log("Added tile at index " + i.xIndex + ", " + i.yIndex + " to open list");                      
                         i.parent = current;
-                        Debug.Log("Gscore of tile at index " + i.xIndex + ", " + i.yIndex + " is " + i.gScore);
+                        i.gScore = 1;
+                        i.hScore = 1 * (Mathf.Abs(i.position.x - tiles[end.xIndex, end.yIndex].GetComponent<Tile>().position.x) + Mathf.Abs(i.position.y - tiles[end.xIndex, end.yIndex].GetComponent<Tile>().position.y));
+                        i.fScore = i.gScore + i.hScore;
+                        Debug.Log("fscore of tile at index " + i.xIndex + ", " + i.yIndex + " is " + i.fScore);
                         openList.Add(i);
                     }
                 }
@@ -393,7 +435,7 @@ public class Level : MonoBehaviour
         List<Point> indexes = new List<Point>();
         bool constructed = false;
         indexes.Add(new Point(end.xIndex, end.yIndex));
-        Debug.Log("End parent is tile " + end.parent.xIndex + ", " + end.parent.yIndex);
+        //Debug.Log("End parent is tile " + end.parent.xIndex + ", " + end.parent.yIndex);
         Tile next = tiles[tiles[end.xIndex, end.yIndex].GetComponent<Tile>().parent.xIndex, tiles[end.xIndex, end.yIndex].GetComponent<Tile>().parent.yIndex].GetComponent<Tile>();       
         bool error = false;
         float timer = 0;

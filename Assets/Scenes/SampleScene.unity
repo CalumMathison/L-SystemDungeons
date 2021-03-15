@@ -344,7 +344,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0496e1fb24a2bca4bb680794488c204e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  StartingAxiom: SCB
+  StartingAxiom: S[-CC]C[CC]CB
   Iterations: 0
   CorridorLength: 3
   MaxSize: 50

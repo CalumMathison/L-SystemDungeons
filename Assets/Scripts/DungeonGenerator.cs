@@ -25,7 +25,7 @@ public class DungeonGenerator : MonoBehaviour
     private Vector3 tPosition = new Vector3(0,0,0);
     public const int MAX_DIM = 10;
     public const int MIN_DIM = 3;
-
+    private Node currNode;
     public int MaxSize;
 
     private void Awake()
@@ -54,18 +54,37 @@ public class DungeonGenerator : MonoBehaviour
 
     void SetupRules()
     {
+        State newState = new State();
+        newState.Axiom = StartingAxiom;
+        newState.position = new Vector3(0, 0, 0);
+        newState.forward = Vector3.up;
+        newState.angle = 0;
+        states.Push(newState);
+        //Set current state
+        currentState = new State();
+        currentState = states.Peek();
+        rules.Clear();
         // Create rules
         Rule S = new Rule('S');
+        S.IsDrawable = true;
         Rule B = new Rule('B');
+        B.IsDrawable = true;
         Rule C = new Rule('C');
+        C.IsDrawable = true;
         Rule L = new Rule('L');
+        L.IsDrawable = true;
         Rule P = new Rule('P');
+        P.IsDrawable = true;
         Rule plus = new Rule('+');
-        plus.angle = 45;
+        plus.angle = (float)Random.Range(0, 180);
+        plus.IsDrawable = false;
         Rule minus = new Rule('-');
-        minus.angle = -45;
+        minus.angle = (float)Random.Range(-180, 0);
+        minus.IsDrawable = false;
         Rule sBranch = new Rule('[');
+        sBranch.IsDrawable = false;
         Rule eBranch = new Rule(']');
+        eBranch.IsDrawable = false;
 
         //Add rules to dictionary
         rules.Add('S', S);
@@ -82,6 +101,7 @@ public class DungeonGenerator : MonoBehaviour
 
     string GenerateAxiom(string current)
     {
+        SetupRules();
         // Start with current axiom
         string result = current;
 
@@ -146,6 +166,11 @@ public class DungeonGenerator : MonoBehaviour
         {
             result = 'S' + result;
         }
+
+        if (!result.Contains("B"))
+        {
+            result += 'B';
+        }
         
         Debug.Log("Axiom Generate. Axiom: " + result);
         return result;
@@ -175,17 +200,28 @@ public class DungeonGenerator : MonoBehaviour
                         newState.Axiom = currentState.Axiom;
                         newState.position = tPosition;
                         newState.forward = forward;
+                        if (currNode != null)
+                        {
+                            newState.currNode = currNode;
+                        }
+                        else
+                        {
+                            newState.currNode = null;
+                        }
                         states.Push(newState);
+                        Debug.Log("New State pushed");
                         positions[index] = tPosition;
                         index++;
                     }
                     else if (c == ']') // Close branch and return to previous state
                     {
                         currentState = states.Pop();
+                        currNode = currentState.currNode;
                         tPosition = currentState.position;
                         forward = currentState.forward;
                         positions[index] = tPosition;
                         index++;
+                        Debug.Log("Old state loaded");
                     }
                     else if (rule.angle != 0) // Rotate direction for next room
                     {
@@ -200,6 +236,8 @@ public class DungeonGenerator : MonoBehaviour
                         newNode.width = (int)Random.Range(MIN_DIM, MAX_DIM);
                         newNode.height = (int)Random.Range(MIN_DIM, MAX_DIM);
                         newNode.type = c;
+                        newNode.Parent = currNode;
+                        currNode = newNode;
                         nodes.Add(newNode);
                         tPosition += forward * 2;
                         positions[index] = tPosition;
@@ -228,6 +266,7 @@ public class DungeonGenerator : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
             Reset();
+            Debug.ClearDeveloperConsole();
             Iterations++;
             currentAxiom = GenerateAxiom(currentAxiom);
             CalculatePositions();
@@ -236,6 +275,7 @@ public class DungeonGenerator : MonoBehaviour
         else if (Input.GetKeyDown(KeyCode.LeftArrow) && Iterations > 0)
         {
             Reset();
+            Debug.ClearDeveloperConsole();
             Iterations--;
             currentAxiom = GenerateAxiom(currentAxiom);
             CalculatePositions();
@@ -247,11 +287,34 @@ public class DungeonGenerator : MonoBehaviour
     {
         nodes.Clear();
         states.Clear();
+        states = new Stack<State>();
+        currentState = new State();
+        SetupRules();
     }
     
 
     private void CheckNodeOverlap()
     {
+        foreach (Node n in nodes)
+        {
+            if (n.positon.x + n.width > 68)
+            {
+                n.positon.x--;
+            }
+            if (n.positon.y + n.height > 68)
+            {
+                n.positon.y--;
+            }
+            if (n.positon.x < -70)
+            {
+                n.positon.x++;
+            }
+            if (n.positon.y < -70)
+            {
+                n.positon.y++;
+            }
+        }
+
         foreach (Node n in nodes)
         {
             foreach (Node j in nodes)

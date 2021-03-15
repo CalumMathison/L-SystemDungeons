@@ -9,4 +9,6 @@ public class Node
     public Vector3 positon;
     //Width and height of node
     public int width, height;
+    //Parent Node
+    public Node Parent;
 }

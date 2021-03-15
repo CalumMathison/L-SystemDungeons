@@ -10,6 +10,8 @@ public class Tile : MonoBehaviour
     public bool isFloor = false;
     public int xIndex, yIndex;
     public float gScore = 1;
+    public float hScore = 0;
+    public float fScore = 0;
     public Tile parent;
 
     public float X

@@ -12,4 +12,6 @@ public class State
     public Vector3 forward;
     //Facing angle of generator at state
     public float angle;
+    //Current Node
+    public Node currNode;
 }
