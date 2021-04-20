@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class DungeonGenerator : MonoBehaviour
 {
@@ -27,6 +28,8 @@ public class DungeonGenerator : MonoBehaviour
     public const int MIN_DIM = 3;
     private Node currNode;
     public int MaxSize;
+    public int max_iterations = 5;
+
 
     private void Awake()
     {
@@ -39,7 +42,7 @@ public class DungeonGenerator : MonoBehaviour
         states.Push(newState);
         //Set current state
         currentState = new State();
-        currentState = states.Peek();
+        currentState = states.Pop();
         Debug.Log("State Setup Complete");
 
         // Set rules for algorithm
@@ -62,7 +65,7 @@ public class DungeonGenerator : MonoBehaviour
         states.Push(newState);
         //Set current state
         currentState = new State();
-        currentState = states.Peek();
+        currentState = states.Pop();
         rules.Clear();
         // Create rules
         Rule S = new Rule('S');
@@ -173,16 +176,24 @@ public class DungeonGenerator : MonoBehaviour
         }
         
         Debug.Log("Axiom Generate. Axiom: " + result);
+        GameObject.FindGameObjectsWithTag("AxiomText")[0].GetComponent<Text>().text = "Current Axiom: " + result + "\nIterations: " + Iterations;
         return result;
     }
 
     void CalculatePositions()
     {
-        tPosition = Vector3.zero;
-        Vector3 forward = Vector3.up;
+        tPosition = new Vector3(0, 0, 0);
+        //Vector3 forward = Vector3.up;
+        //Vector3 forward = new Vector3(Random.Range(0, 360), Random.Range(0, 360));
+        Vector3[] vs = new Vector3[4];
+        vs[0] = Vector3.up;
+        vs[1] = Vector3.down;
+        vs[2] = Vector3.right;
+        vs[3] = Vector3.left;
+        Vector3 forward = vs[Random.Range(0, 3)];
+        Debug.Log(forward);
         Vector3[] positions = new Vector3[currentAxiom.Length + 1];
         int index = 1;
-        Vector3 pos = Vector3.zero;
 
         // Iterate over current axiom
         foreach (char c in currentAxiom)
@@ -225,7 +236,8 @@ public class DungeonGenerator : MonoBehaviour
                     }
                     else if (rule.angle != 0) // Rotate direction for next room
                     {
-                        forward = Quaternion.AngleAxis(rule.angle, Vector3.forward) * forward;
+                        forward += Quaternion.AngleAxis(rule.angle, Vector3.up) * forward * CorridorLength;
+                        Debug.LogError(forward);
                     }
 
                     // Check if rule is drawable and create node to represent it
@@ -233,13 +245,15 @@ public class DungeonGenerator : MonoBehaviour
                     {
                         Node newNode = new Node();
                         newNode.positon = new Vector3(tPosition.x + 0.5f, tPosition.y + 0.5f, 0);
+                        Debug.Log("Node pos: " + newNode.positon);
                         newNode.width = (int)Random.Range(MIN_DIM, MAX_DIM);
                         newNode.height = (int)Random.Range(MIN_DIM, MAX_DIM);
                         newNode.type = c;
                         newNode.Parent = currNode;
                         currNode = newNode;
                         nodes.Add(newNode);
-                        tPosition += forward * 2;
+                        Debug.Log(tPosition);
+                        tPosition += forward;
                         positions[index] = tPosition;
                         index++;
                     }
@@ -263,14 +277,26 @@ public class DungeonGenerator : MonoBehaviour
 
     private void Update()
     {
+
+        
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            Reset();
-            Debug.ClearDeveloperConsole();
-            Iterations++;
-            currentAxiom = GenerateAxiom(currentAxiom);
-            CalculatePositions();
-            Debug.Log("Iteration Increased");
+            try
+            {
+                Reset();
+                Debug.ClearDeveloperConsole();
+                if (Iterations < max_iterations)
+                {
+                    Iterations++;
+                }
+                currentAxiom = GenerateAxiom(currentAxiom);
+                CalculatePositions();
+                Debug.Log("Iteration Increased");
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
         }
         else if (Input.GetKeyDown(KeyCode.LeftArrow) && Iterations > 0)
         {
@@ -289,49 +315,80 @@ public class DungeonGenerator : MonoBehaviour
         states.Clear();
         states = new Stack<State>();
         currentState = new State();
+        nodes = new List<Node>();
         SetupRules();
     }
-    
+
+    static bool IsOverlapping(Node n, Node j)
+    {
+        return (Vector2.Distance(n.positon, j.positon) < n.width + j.width + 1
+                        || Vector2.Distance(n.positon, j.positon) < n.height + j.height + 1);
+    }
+
+    static bool IsOffTopGrid(Node n)
+    {
+        if (n.positon.x + n.width + 1 > 68 || n.positon.y + n.height + 1 > 68)
+            return true;
+
+        return false;
+    }
+
+    static bool IsOffBotGrid(Node n)
+    {
+        if (n.positon.x - 1 < -70 || n.positon.y - 1 < -70)
+            return true;
+
+        return false;
+    }
 
     private void CheckNodeOverlap()
     {
-        foreach (Node n in nodes)
-        {
-            if (n.positon.x + n.width > 68)
-            {
-                n.positon.x--;
-            }
-            if (n.positon.y + n.height > 68)
-            {
-                n.positon.y--;
-            }
-            if (n.positon.x < -70)
-            {
-                n.positon.x++;
-            }
-            if (n.positon.y < -70)
-            {
-                n.positon.y++;
-            }
-        }
+        bool redo = false;
+        float counter = 0;
 
-        foreach (Node n in nodes)
+        do
         {
-            foreach (Node j in nodes)
-            {
-                if (n != j)
+            counter += 0.1f;
+            redo = false;
+            for (int i = 0; i < nodes.Count; ++i)
+                for (int j = i + 1; j < nodes.Count; ++j)
                 {
-                    if (Vector2.Distance(n.positon, j.positon) < n.width + j.width + 1 
-                        || Vector2.Distance(n.positon, j.positon) < n.height + j.height + 1)
+                    var node_i = nodes[i];
+                    var node_j = nodes[j];
+
+                    if (IsOverlapping(node_i, node_j))
                     {
-                        n.positon.x--;
-                        n.positon.y--;
-                        j.positon.x++;
-                        j.positon.y++;
-                        CheckNodeOverlap();
-                    }
+                        node_i.positon.x = Mathf.Max(0, node_i.positon.x - node_i.width);
+                        node_i.positon.y = Mathf.Max(0, node_i.positon.y - node_i.height);
+                        node_j.positon.x = Mathf.Min(140 - node_j.width - 1, node_j.positon.x + 1);
+                        node_j.positon.y = Mathf.Min(140 - node_j.height - 1, node_j.positon.y + 1);
+                        i = nodes.Count;
+                        j = nodes.Count;
+                        redo = true;
                 }
             }
+        } while (redo && (counter < 10000));
+
+        if (counter >= 10000)
+        {
+            Debug.LogError("Operation Failed.");
         }
+
+        //counter = 0;
+        //for (int i = 0; i < nodes.Count; i++)
+        //{
+        //    var node_i = nodes[i];
+
+        //    if (IsOffTopGrid(node_i))
+        //    {
+        //        node_i.
+        //    }
+
+        //    if (IsOffBotGrid(node_i)
+        //    {
+
+        //    }
+        //}
+
     }
 }

@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class State
 {
+
+
     //Axiom of generator at state
     public string Axiom;
     //Position of generator at state
@@ -14,4 +16,5 @@ public class State
     public float angle;
     //Current Node
     public Node currNode;
+
 }

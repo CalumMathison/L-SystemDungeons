@@ -52,16 +52,34 @@ public class Level : MonoBehaviour
 
         List<Tile> originPoints = new List<Tile>();
 
-
-        for (int x = 0; x < width; x++)
+        if (nodes.Count < 1)
         {
-            for (int y = 0; y < height; y++)
+            Debug.LogError("Problem with nodes");
+        }
+
+        for (int x = 0; x < width - 1; x++)
+        {
+            for (int y = 0; y < height - 1; y++)
             {
-                for (int i = 0; i < nodes.Count; i++)
+                for (int i = 0; i < nodes.Count - 1; i++)
                 {
                     if (tiles[x, y].GetComponent<Collider2D>().bounds.Contains(nodes[i].positon))
                     {
-                        originPoints.Add(tiles[x + (int)Random.Range(0, nodes[i].width), y + (int)Random.Range(0, nodes[i].height)].GetComponent<Tile>());
+                        int nx, ny;
+                        nx = x + (int)Random.Range(0, nodes[i].width);
+                        ny = y + (int)Random.Range(0, nodes[i].height);
+
+                        if (nx > width)
+                        {
+                            nx = 140;
+                        }
+
+                        if (ny > height)
+                        {
+                            nx = 140;
+                        }
+
+                        originPoints.Add(tiles[nx, ny].GetComponent<Tile>());
                     }
                 }
             }
@@ -69,8 +87,8 @@ public class Level : MonoBehaviour
 
         foreach (Node n in nodes)
         {
-            Tile c = new Tile();
-            Tile p = new Tile();
+            Tile c = null;
+            Tile p = null;
 
             for (int x = 0; x < width; x++)
             {
@@ -78,7 +96,21 @@ public class Level : MonoBehaviour
                 {
                     if (tiles[x, y].GetComponent<Collider2D>().bounds.Contains(n.positon))
                     {
-                        c = tiles[x + (int)Random.Range(0, n.width), y + (int)Random.Range(0, n.height)].GetComponent<Tile>();
+                        int nx, ny;
+                        nx = x + (int)Random.Range(0, n.width - 1);
+                        ny = y + (int)Random.Range(0, n.height - 1);
+
+                        if (nx > width)
+                        {
+                            nx = 140;
+                        }
+
+                        if (ny > height)
+                        {
+                            nx = 140;
+                        }
+
+                        c = tiles[nx, ny].GetComponent<Tile>();
                     }
                 }
             }
@@ -89,9 +121,23 @@ public class Level : MonoBehaviour
                 {
                     if (n.Parent != null)
                     {
+                        int nx, ny;
+                        nx = x + (int)Random.Range(0, n.Parent.width - 1);
+                        ny = y + (int)Random.Range(0, n.Parent.height - 1);
+
+                        if (nx > width)
+                        {
+                            nx = 140;
+                        }
+
+                        if (ny > height)
+                        {
+                            nx = 140;
+                        }
+
                         if (tiles[x, y].GetComponent<Collider2D>().bounds.Contains(n.Parent.positon))
                         {
-                            p = tiles[x + (int)Random.Range(0, n.Parent.width), y + (int)Random.Range(0, n.Parent.height)].GetComponent<Tile>();
+                            p = tiles[nx, ny].GetComponent<Tile>();
                         }
                     }
                 }
@@ -104,33 +150,6 @@ public class Level : MonoBehaviour
 
         }        
 
-        //int originCount = originPoints.Count;
-
-        //for (int i = 0; i < originPoints.Count - 1; i += 2)
-        //{
-        //    int x, y;
-        //    float rng = Random.Range(0, 10);
-        //    Debug.Log(rng);
-        //    if (rng >= 5)
-        //    {
-        //        x = originPoints[i].GetComponent<Tile>().xIndex;
-        //        y = originPoints[i + 1].GetComponent<Tile>().yIndex;
-        //        originPoints.Insert(i + 1, tiles[x, y].GetComponent<Tile>());
-        //    }
-        //    else
-        //    {
-        //        x = originPoints[i + 1].GetComponent<Tile>().xIndex;
-        //        y = originPoints[i].GetComponent<Tile>().yIndex;
-        //        originPoints.Insert(i + 1, tiles[x, y].GetComponent<Tile>());
-        //    }
-        //}
-
-        //for (int i = 0; i < originPoints.Count-1; i++)
-        //{
-        //    MakePath(originPoints[i], originPoints[i+1]);
-        //}
-
-
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
@@ -139,6 +158,9 @@ public class Level : MonoBehaviour
                 {
                     if (tiles[x, y].GetComponent<Collider2D>().bounds.Contains(n.positon))
                     {
+                        Debug.LogError("Tile pos: " + tiles[x, y].GetComponent<Tile>().position);
+                        Debug.LogError("Node pos: " + n.positon);
+
                         if (n == nodes.First<Node>())
                         {
                             start = tiles[x, y];
@@ -248,6 +270,7 @@ public class Level : MonoBehaviour
 
     public void CalculateWalls()
     {
+
         for (int x = 1; x < width - 1 ; x++)
         {
             for (int y = 1; y < height - 1; y++)
@@ -264,6 +287,7 @@ public class Level : MonoBehaviour
                 }
             }
         }
+
     }
 
     public void CalculateDoors()
@@ -276,6 +300,8 @@ public class Level : MonoBehaviour
                 GameObject.Destroy(doors[i]);
             }
         }
+
+
         for (int x = 1; x < width - 1; x++)
         {
             for (int y = 1; y < height - 1; y++)
@@ -299,6 +325,8 @@ public class Level : MonoBehaviour
                 }
             }
         }
+
+
     }
 
     void MakePath(Tile start, Tile end)
@@ -314,9 +342,8 @@ public class Level : MonoBehaviour
         Tile current = openList[0];
         bool pathfound = false;
         bool error = false;
-        float g = 0, h = 0, f = 0, nh, nf;
-        g = 0;
-        h = 0;
+      
+
         //f = Vector2.Distance(start.position, end.position);
         float timer = 0;
         //f = Vector2.Distance(tiles[start.xIndex, start.yIndex].GetComponent<Tile>().position, tiles[end.xIndex, end.yIndex].GetComponent<Tile>().position);
@@ -399,8 +426,13 @@ public class Level : MonoBehaviour
                         Debug.Log("Added tile at index " + i.xIndex + ", " + i.yIndex + " to open list");                      
                         i.parent = current;
                         i.gScore = 1;
-                        i.hScore = 1 * (Mathf.Abs(i.position.x - tiles[end.xIndex, end.yIndex].GetComponent<Tile>().position.x) + Mathf.Abs(i.position.y - tiles[end.xIndex, end.yIndex].GetComponent<Tile>().position.y));
+
+                        i.hScore = 1 * (Mathf.Abs(i.position.x - tiles[end.xIndex, end.yIndex].GetComponent<Tile>().position.x) + 
+                            Mathf.Abs(i.position.y - tiles[end.xIndex, end.yIndex].GetComponent<Tile>().position.y));
+
                         i.fScore = i.gScore + i.hScore;
+
+
                         Debug.Log("fscore of tile at index " + i.xIndex + ", " + i.yIndex + " is " + i.fScore);
                         openList.Add(i);
                     }
@@ -449,10 +481,7 @@ public class Level : MonoBehaviour
                 Debug.Log("Error: ALgorithm took more than 10000 ticks");
                 error = true;
             }
-
-            Debug.Log("Adding tile " + next.xIndex + ", " + next.yIndex + " to path.");
             indexes.Add(new Point(next.xIndex, next.yIndex));
-            Debug.Log("Next parent is tile " + next.parent.xIndex + ", " + next.parent.yIndex);
             int x = next.parent.xIndex;
             int y = next.parent.yIndex;
             next = tiles[x, y].GetComponent<Tile>();

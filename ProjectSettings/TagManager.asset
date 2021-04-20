@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Level
   - Door
+  - AxiomText
   layers:
   - Default
   - TransparentFX

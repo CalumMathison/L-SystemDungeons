@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Node
 {
+
+    //Type of node
     public char type;
     //Position of Node
     public Vector3 positon;
@@ -11,4 +13,5 @@ public class Node
     public int width, height;
     //Parent Node
     public Node Parent;
+
 }

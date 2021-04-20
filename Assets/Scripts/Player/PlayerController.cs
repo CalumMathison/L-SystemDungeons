@@ -15,6 +15,7 @@ public class PlayerController : MonoBehaviour
 
 
     // Start is called before the first frame update
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -23,20 +24,23 @@ public class PlayerController : MonoBehaviour
     }
 
     // Update is called once per frame
+
     void Update()
     {
         horizontal = Input.GetAxisRaw("Horizontal");
         vertical = Input.GetAxisRaw("Vertical");
 
-        if (startPos != currLevel.start.GetComponent<Tile>().position)
+        if (Input.GetKeyDown(KeyCode.RightArrow) || (Input.GetKeyDown(KeyCode.LeftArrow)))
         {
             transform.position = currLevel.start.GetComponent<Tile>().position;
             startPos = currLevel.start.GetComponent<Tile>().position;
         }
+       
     }
 
     private void FixedUpdate()
     {
-        rb.velocity = new Vector2(horizontal * runSpeed, vertical * runSpeed);
+        rb.velocity = new Vector2(horizontal * runSpeed, 
+            vertical * runSpeed);
     }
 }
